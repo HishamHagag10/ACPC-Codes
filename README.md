@@ -108,7 +108,7 @@ private:
 ```
 
 
-# HLD 
+# HLD (Nodes start from 0)
 ``` C++
 vector<int> parent, depth, heavy, head, pos;
 int cur_pos;
