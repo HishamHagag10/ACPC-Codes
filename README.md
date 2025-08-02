@@ -209,3 +209,30 @@ int getKthAncestor(int node, int k) {
     return node;
 }
 ```
+# Modulo of Fraction 
+```C++
+long long power(long long base, long long exp, long long mod) {
+    if (exp == 0) return 1;
+    if (exp % 2 == 0) {
+        long long half_pow = power(base, exp / 2, mod);
+        return (half_pow * half_pow) % mod;
+    } else {
+        return (base * power(base, exp - 1, mod)) % mod;
+    }
+}
+
+// Function to compute the modular inverse of 'a' modulo 'm' using Fermat's Little Theorem
+long long inverse_modulo(long long a, long long m) {
+    return power(a, m - 2, m);
+}
+
+// Function to compute the value of (A/B) % m, where A, B, and m are given integers
+long long fraction_to_natural_modulo(long long A, long long B, long long m) {
+    // Calculate the modular inverse of B
+    long long inverse_B = inverse_modulo(B, m);
+    // Compute (A * inverse_B) % m
+    long long result = (A * inverse_B) % m;
+    return result;
+}
+```
+
