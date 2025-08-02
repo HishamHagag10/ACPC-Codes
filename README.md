@@ -197,3 +197,15 @@ int query(int a, int b) {
     return s;
 }
 ```
+# Kth Ancestor (from lca)
+```C++
+int getKthAncestor(int node, int k) {
+    for (int i = 0; i < 20; i++) {
+        if ((k >> i) & 1) {
+            node = up[node][i];
+            if (node == -1) return -1;
+        }
+    }
+    return node;
+}
+```
