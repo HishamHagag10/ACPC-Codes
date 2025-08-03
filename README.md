@@ -199,6 +199,56 @@ int query(int a, int b) {
 ```
 # Kth Ancestor (from lca)
 ```C++
+const int MAX_N = 100005;
+const int LOG = 20;
+vector<int> children[MAX_N];
+int up[MAX_N][LOG]; // up[v][j] is 2^j-th ancestor of v
+int depth[MAX_N], sons[MAX_N];
+int dfs(int a) {
+    sons[a] = 1; // count itself
+	for(int b : children[a]) {
+	    if (up[a][0]==b)continue;
+		depth[b] = depth[a] + 1;
+		up[b][0] = a; // a is parent of b
+		for(int j = 1; j < LOG; j++) {
+			up[b][j] = up[up[b][j-1]][j-1];
+		}
+		sons[a] += dfs(b);
+	}
+	return sons[a];
+}
+ 
+int get_lca(int a, int b) { // O(log(N))
+	if(depth[a] < depth[b]) {
+		swap(a, b);
+	}
+	// 1) Get same depth.
+	int k = depth[a] - depth[b];
+    int ret = k;
+    // cout<<k<<'\n';
+	for(int j = LOG - 1; j >= 0; j--) {
+		if(k & (1 << j)) {
+			a = up[a][j]; // parent of a
+		}
+	}
+    // cout<<a<<' '<<b<<'\n';
+	// 2) if b was ancestor of a then now a==b
+	if(a == b) {
+		return ret;
+	}
+	// 3) move both a and b with powers of two
+	for(int j = LOG - 1; j >= 0; j--) {
+		if(up[a][j] != up[b][j]) {
+			a = up[a][j];
+			b = up[b][j];
+		    // cout<<a<<' '<<j<<'\n';
+            ret += (1 << j) * 2; // count the steps taken
+		}
+	}
+    // cout<<up[a][0]<<'\n';
+    return ret + 2; // return the distance
+	return up[a][0];
+}
 int getKthAncestor(int node, int k) {
     for (int i = 0; i < 20; i++) {
         if ((k >> i) & 1) {
