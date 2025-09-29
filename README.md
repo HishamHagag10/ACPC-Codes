@@ -1082,3 +1082,111 @@ int main()
     return 0;
 }
 ```
+
+
+
+## Lazy Persistent Segment Tree
+```c++
+#include <bits/stdc++.h>
+#define ll long long
+using namespace std;
+
+struct Vertex {
+    Vertex *l, *r;
+    ll sum, lazy;
+    Vertex(ll val = 0) : l(nullptr), r(nullptr), sum(val), lazy(0) {}
+    Vertex(Vertex *L, Vertex *R) : l(L), r(R), sum(0), lazy(0) {
+        if (l) sum += l->sum;
+        if (r) sum += r->sum;
+    }
+    Vertex(const Vertex &v) : l(v.l), r(v.r), sum(v.sum), lazy(v.lazy) {}
+};
+
+Vertex* build(ll a[], int tl, int tr) {
+    if (tl == tr) return new Vertex(a[tl]);
+    int tm = (tl + tr) >> 1;
+    return new Vertex(build(a, tl, tm), build(a, tm + 1, tr));
+}
+
+void push(Vertex* v, int tl, int tr) {
+    if (!v || v->lazy == 0 || tl == tr) return;
+    int tm = (tl + tr) >> 1;
+    if (v->l) {
+        v->l = new Vertex(*v->l);
+        v->l->lazy += v->lazy;
+        v->l->sum += v->lazy * (tm - tl + 1);
+    }
+    if (v->r) {
+        v->r = new Vertex(*v->r);
+        v->r->lazy += v->lazy;
+        v->r->sum += v->lazy * (tr - tm);
+    }
+    v->lazy = 0;
+}
+
+Vertex* update(Vertex* v, int tl, int tr, int l, int r, ll val) {
+    if (tl > r || tr < l) return v;
+    Vertex* node = new Vertex(*v);
+    if (l <= tl && tr <= r) {
+        node->lazy += val;
+        node->sum += val * (tr - tl + 1);
+        return node;
+    }
+    int tm = (tl + tr) >> 1;
+    push(node, tl, tr);
+    node->l = update(node->l, tl, tm, l, r, val);
+    node->r = update(node->r, tm + 1, tr, l, r, val);
+    node->sum = 0;
+    if (node->l) node->sum += node->l->sum;
+    if (node->r) node->sum += node->r->sum;
+    return node;
+}
+
+ll get_sum(Vertex* v, int tl, int tr, int l, int r) {
+    if (!v || tl > r || tr < l) return 0;
+    if (l <= tl && tr <= r) return v->sum;
+    int tm = (tl + tr) >> 1;
+    ll res = 0;
+    if (v->l) res += get_sum(v->l, tl, tm, l, r);
+    if (v->r) res += get_sum(v->r, tm + 1, tr, l, r);
+    if (v->lazy != 0) {
+        int Loverlap = max(0, min(tm, r) - max(tl, l) + 1);
+        int Roverlap = max(0, min(tr, r) - max(tm + 1, l) + 1);
+        res += v->lazy * (Loverlap + Roverlap);
+    }
+    return res;
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout.tie(nullptr);
+    int n, q;
+    cin >> n >> q;
+    ll a[n + 1];
+    for (int i = 1; i <= n; ++i) cin >> a[i];
+
+    vector<Vertex*> versions(q + 5, nullptr);
+    versions[0] =  build(a, 1, n);;
+    int cur = 0;
+
+    while (q--) {
+        char c; cin >> c;
+        if (c == 'C') {
+            int l, r; ll x; cin >> l >> r >> x;
+            versions[cur + 1] = update(versions[cur], 1, n, l, r, x);
+            ++cur;
+        } else if (c == 'Q') {
+            int l, r; cin >> l >> r;
+            cout << get_sum(versions[cur], 1, n, l, r) << '\n';
+        } else if (c == 'H') {
+            int l, r, t; cin >> l >> r >> t;
+            cout << get_sum(versions[t], 1, n, l, r) << '\n';
+        } else {
+            int t; cin >> t;
+            cur = t;
+        }
+    }
+    return 0;
+}
+```
